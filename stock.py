@@ -117,11 +117,47 @@ def main():
                 st.pyplot(normalized_figure_final)              
                 max_mean = summary_close_all["mean"].max()
                 max_std = summary_close_all["std"].max()
+                min_mean = summary_close_all["mean"].min()
+                min_std = summary_close_all["std"].min()
+                high_mean_rows = summary_close_all[(summary_close_all["mean"] == max_mean)]
+                high_std_rows = summary_close_all[(summary_close_all["std"] == max_std)]
                 high_mean_std_rows = summary_close_all[(summary_close_all["mean"] == max_mean) & (summary_close_all["std"] == max_std)]
-                st.write("For instance, Our graph depicts", high_mean_std_rows.index[0], "has higher Annual returns but Also a higher risk.")
-                st.warning("It is Recommended for short term Investment, But such should be proceeded with caution")
+                low_everything = summary_close_all[(summary_close_all["mean"] == min_mean) & (summary_close_all["std"] == min_std)]
 
-                st.header("Volatility in Return Margins (%) For All Business Days till Aforementioned End Date")
+                if not high_mean_rows.empty:
+                    message = f"Our Graph depicts {high_mean_rows.index[0]} has higher Annual returns in this case. Check Risk Promise to decide Long/Short holding positions" 
+                    st.success(message)
+                if not high_std_rows.empty:
+                    message_warning = f"Furthermore, {high_std_rows.index[0]} has a higher Annual Risk Promise. Check Annual Return(s) to decide A short holding position or a Non-Purchase" 
+                    st.warning(message_warning)
+                if not high_mean_std_rows.empty:
+                    message_warning_two = f"Our Graph depicts {high_mean_std_rows.index[0]} has higher Annual returns with Higher Risk in this case.Recommended exclusively for short holding" 
+                    st.warning(message_warning_two)
+                if not low_everything.empty and low_everything.index[0] not in benchmark:
+                    message_warning_three = f"Our Graph depicts {low_everything.index[0]} has lower Annual returns with Higher Risk in this case. Not recommended for purchase"
+                    st.warning(message_warning_three) 
+                
+                st.header("Volatility & Sensitivity Graphs Per stock in Return Margins (%) and in ($) For All Business Days till Aforementioned End Date")
+                #The moving average sections 
+                data_columns = close_all.columns[0:-1]
+                # Define a color palette with desired colors
+                color_palette = sns.color_palette("Set1", len(data_columns))
+                color_palette_two = sns.color_palette("Set2", len(data_columns))
+    
+                # Create a line plot for each ticker with moving averages
+                for i, column in enumerate(data_columns):
+                    fig1, ax = plt.subplots(figsize=(12, 8))
+                    ax.set_title("Moving Average in Closing Price Change per Day in ($) In relation to Closing Price per day")
+                    ax.set_xlabel("Time")
+                    ax.set_ylabel("Price in ($)")
+                    closing_prices = close_all[column]
+                    moving_average = close_all[column].rolling(window=10).mean()  # Adjust the window size as desired
+                    ax.plot(closing_prices.index, closing_prices, color=color_palette_two[i], label=column)
+                    ax.plot(moving_average.index, moving_average, color=color_palette[i], linestyle='--', label=f'{column} (Moving Average)')
+                    plt.xticks(rotation=45, ha='right')
+                    ax.legend()
+                    st.pyplot(fig1)
+
                 # Extract the tickers (column names excluding the first column)
                 data_columns = return_all_close.columns[0:-1]
 
@@ -131,11 +167,32 @@ def main():
                 # Create a histogram for each ticker
                 for i, column in enumerate(data_columns):
                     fig, ax = plt.subplots(figsize=(12, 8))
-                    ax.set_xlabel("Volatility in Return Margins")
+                    ax.set_title("Volatility in Return Margins(%) Change")
+                    ax.set_xlabel("Return Margins(%)")
                     ax.set_ylabel("Frequency of Return Change")
                     return_all_close.loc[:, column].plot(kind="hist", bins=100, ax=ax, color=color_palette[i], label=column)
                     ax.legend()
                     st.pyplot(fig)
+             
+
+                color_palette_zero = sns.color_palette("Set1", len(data_columns))
+                close_all_edited = close_all
+                new_tables = []
+                data_columns_one = close_all_edited.iloc[:, :-1]
+                for i, column in enumerate(data_columns_one):
+                    new_table = close_all_edited[[column]].copy()
+                    new_table = new_table.assign(Daily_Returns=np.log(new_table[column].div(new_table[column].shift(1))))
+                    new_table.dropna(inplace = True)
+                    new_table = new_table.assign(Cummulative_Returns = new_table.Daily_Returns.cumsum().apply(np.exp))
+                    new_tables.append(new_table)
+                for i, table in enumerate(new_tables):
+                    fig_cum, ax = plt.subplots(figsize=(12, 8))
+                    ax.set_title("Cummulative Return For $1 Investment over Selected Period For the Ticker")
+                    table["Cummulative_Returns"].plot(ax=ax, color=color_palette_zero[i], label=data_columns_one.columns[i])
+                    ax.legend()
+                    st.pyplot(fig_cum)
+             
+                #The covariance-ticker Graph graph
                 st.header("Correlation & Covariance Analysis Per stock & Against Benchmark Referencing Annual Returns(%)")
                 plt.figure(figsize = (12,8))
                 sns.set(font_scale = 1.4)
@@ -143,9 +200,6 @@ def main():
                 sns.heatmap(return_all_close.corr(), cmap="Reds", annot=True, annot_kws={"size":15}, vmax=0.6)
                 correlation_graph = plt.gcf()
                 st.pyplot(correlation_graph)
-
-                #The covariance graph
-                
                 plt.figure(figsize = (12,8))
                 sns.set(font_scale = 1.4)
                 plt.title("Correlation Heatmap ")
@@ -157,8 +211,6 @@ def main():
     if st.button('Reset'):
     # Clear the session state
         st.session_state.clear()
-    # Refresh the page
-        raise st.script_runner.RerunException(st.script_request_queue.RerunData(None))
 
 if __name__ == "__main__":
     main()
