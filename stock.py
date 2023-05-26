@@ -1,10 +1,11 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
+import seaborn as sns
 import numpy as np
 import matplotlib.pyplot as plt
 import plotly.express as px
-
+from streamlit import pyplot as st_plt
 
 def main():
     st.title("Level I Stock Risk + Reward Visualizer")
@@ -68,7 +69,7 @@ def main():
             # Perform download on all stocks
             stocks_all = yf.download(st.session_state.tickers, start=start_date, end=end_date)
             if not stocks_all.empty:
-                st.success("Data downloaded successfully!")
+                st.success("Data downloaded successfully! Analyst Can Now Investigate A Stock's perfomance against selected Benchmark")
                 close_all = stocks_all.loc[:, "Close"].copy()
                 plt.figure(figsize=(15, 8))
                 for ticker in close_all.columns:
@@ -96,28 +97,68 @@ def main():
                 plt.tight_layout()
                 normalized_figure = plt.gcf()
                 st.pyplot(normalized_figure)
-
-                st.header("Annual Returns / Year Prediction [Mean & Std]")
+                
+                st.header("Annual Risk & Return / Year using Mean & Stdev")
                 return_all_close = close_all.pct_change().dropna()
-                return_all_close.plot(kind="hist", figsize=(12,8), bins = 100)
                 summary_close_all = return_all_close.describe().T.loc[:, ["mean", "std"]]
                 summary_close_all["mean"] = summary_close_all["mean"] * 252
                 summary_close_all["std"] = summary_close_all["std"] * np.sqrt(252)
-                summary_close_all.inde
-                plt.figure( figsize = (12,8))
+                plt.figure(figsize=(12,8))
                 for i in summary_close_all.index:
-                    plt.scatter(i, xy = (summary_close_all.loc[i, "std"] + 0.002,summary_close_all.loc[i, "mean"]+0.002), size = 15)
+                    plt.scatter(summary_close_all.loc[i, "std"] + 0.002, summary_close_all.loc[i, "mean"]+0.002, s=15)
+                    plt.text(summary_close_all.loc[i, "std"] + 0.002, summary_close_all.loc[i, "mean"]+0.002, i)  # Add label using plt.text()
                 plt.xlabel('Annual Risk Promise(%)', fontsize=12)
                 plt.ylabel('Annual Return Promise(%)', fontsize=12)
-                plt.title('Annual Risk/ Return Portfolio for Each Ticker', fontsize=14)
+                plt.title('Annual Risk/Return Portfolio for Each Ticker', fontsize=14)
                 plt.grid(True)
                 plt.legend(loc='upper left')
                 plt.tight_layout()
                 normalized_figure_final = plt.gcf()
-                st.pyplot(normalized_figure_final)                
+                st.pyplot(normalized_figure_final)              
+                max_mean = summary_close_all["mean"].max()
+                max_std = summary_close_all["std"].max()
+                high_mean_std_rows = summary_close_all[(summary_close_all["mean"] == max_mean) & (summary_close_all["std"] == max_std)]
+                st.write("For instance, Our graph depicts", high_mean_std_rows.index[0], "has higher Annual returns but Also a higher risk.")
+                st.warning("It is Recommended for short term Investment, But such should be proceeded with caution")
+
+                st.header("Volatility in Return Margins (%) For All Business Days till Aforementioned End Date")
+                # Extract the tickers (column names excluding the first column)
+                data_columns = return_all_close.columns[0:-1]
+
+                # Define a color palette with desired colors
+                color_palette = sns.color_palette("Set2", len(data_columns))
+
+                # Create a histogram for each ticker
+                for i, column in enumerate(data_columns):
+                    fig, ax = plt.subplots(figsize=(12, 8))
+                    ax.set_xlabel("Volatility in Return Margins")
+                    ax.set_ylabel("Frequency of Return Change")
+                    return_all_close.loc[:, column].plot(kind="hist", bins=100, ax=ax, color=color_palette[i], label=column)
+                    ax.legend()
+                    st.pyplot(fig)
+                st.header("Correlation & Covariance Analysis Per stock & Against Benchmark Referencing Annual Returns(%)")
+                plt.figure(figsize = (12,8))
+                sns.set(font_scale = 1.4)
+                plt.title("Correlation Heatmap ")
+                sns.heatmap(return_all_close.corr(), cmap="Reds", annot=True, annot_kws={"size":15}, vmax=0.6)
+                correlation_graph = plt.gcf()
+                st.pyplot(correlation_graph)
+
+                #The covariance graph
                 
+                plt.figure(figsize = (12,8))
+                sns.set(font_scale = 1.4)
+                plt.title("Correlation Heatmap ")
+                sns.heatmap(return_all_close.cov(), cmap="Greens", annot=True, annot_kws={"size":15}, vmax=0.6)
+                covariance_graph = plt.gcf()
+                st.pyplot(covariance_graph)
             else:
                 st.error("Failed to download data.")
+    if st.button('Reset'):
+    # Clear the session state
+        st.session_state.clear()
+    # Refresh the page
+        raise st.script_runner.RerunException(st.script_request_queue.RerunData(None))
 
 if __name__ == "__main__":
     main()
