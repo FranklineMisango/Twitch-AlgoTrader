@@ -4,8 +4,6 @@ This Python project is quite complex and requires users to have at least basic u
 ## Softare Development
 #### Software Development Cycle Architecture 
 ![](images/image_trading_bot.jpg)
-#### Web Trading Software 
-![](images/Architecture_b.png)
 #### Recommendation Algorithms
 * Foremost, I run the Level I stock Visualizer to get a history of the closing price of the stock (Customized Graphs)
 ![](images/level_1.png)
@@ -17,8 +15,13 @@ This Python project is quite complex and requires users to have at least basic u
 ![](images/level_3.png)
 * To get the current Expertise opinion on how the stock is doing, I have my own customized BERT & BART NLP Application that generates Sentiment analysis for that particular stock ticker news. I run it live when I am doing my Algorithmic analysis You can ![download](https://github.com/FranklineMisango/XPay_Finance_Beta) and test it
 ![](images/cover_image.png)
+
 #### Application Programming Interface (APIs)
 * IEX cloud Free API - For Fetching stock information , stats and quotation values. [Get it here](https://iexcloud.io/)
+#### Twitch Trading Bots
+![](images/construction.jpg)
+#### Final Trading Window 
+![](images/construction.jpg)
 #### Live Trade in Action Demo
 ![](images/construction.jpg)
 
