@@ -24,7 +24,7 @@ This Python project is quite complex and requires users to have at least basic u
 * This is the Twitch chat
 ![](images/twitch.png)
 * This is the response from terminal
-![](images/twitch.png)
+![](images/terminal.png)
 #### Live Trade in Action Demo
 ![](images/construction.jpg)
 
