@@ -21,14 +21,17 @@ This Python project is quite complex and requires users to have at least basic u
 * Twitch APIs - These APIs are creating the Intertwined Twitch bot that allows my followers to Trade
 * Alpaca Markets APIs -  These APIs allowed me to link my Application with my Paper Trading Account.   
 #### Twitch Trading Bot
-* 
-#### Final Trading Window 
-![](images/construction.jpg)
+* ![](images/twitch.png)
 #### Live Trade in Action Demo
 ![](images/construction.jpg)
 
 ## Installation
+* You need to create your own Twitch, Alpaca Markets and IEX cloud Accounts
 * Clone this repo to your local Machine
 * Run `pip install requirements.txt`
 * Create a secrets_1.py and write in that `IEX_CLOUD_API_TOKEN = YOUR_IEX_CLOUD_API`
-* Run `streamlit run stock.py` and do the same for `Equal.py , value.py, quantitative.py`
+* Create a config.py and paste in that your `ALPACA API credentials` and `Twitch credentials` all specified in the twitch.py
+* Run `streamlit run stock.py` and do the same for `Equal.py , value.py, quantitative.py` to analyze stock recommendations
+* To start trading, run `python twitch.py` and observe `connected to bot` successfully
+* Login to your own twitch account and in your chat, try `!buy STOCK_SYMBOL Number` replacing Stock symbol and the number
+* To trade for my behalf lol, Follow me on Twitch `ATLien_ke` and join my message list when the chat & live stream opens, you can be allowed in
