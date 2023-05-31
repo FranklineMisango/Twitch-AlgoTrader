@@ -21,7 +21,10 @@ This Python project is quite complex and requires users to have at least basic u
 * Twitch APIs - These APIs are creating the Intertwined Twitch bot that allows my followers to Trade
 * Alpaca Markets APIs -  These APIs allowed me to link my Application with my Paper Trading Account.   
 #### Twitch Trading Bot
-* ![](images/twitch.png)
+* This is the Twitch chat
+![](images/twitch.png)
+* This is the response from terminal
+![](images/twitch.png)
 #### Live Trade in Action Demo
 ![](images/construction.jpg)
 
