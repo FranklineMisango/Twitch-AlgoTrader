@@ -1,78 +1,69 @@
 import alpaca_trade_api as tradeapi
-import requests
 from twitchio.ext import commands
-from config import APCA_API_BASE_URL
-from config import CLIENT_ID
-from config import ALPACA_KEY
-from config import ALPACA_SECRET_KEY
-from config import APCA_API_BASE_URL
-import logging
+from config import ALPACA_KEY, ALPACA_SECRET_KEY, APCA_API_BASE_URL
+from config import TWITCH_TOKEN
+from config import TWITCH_CLIENT_ID
 
-# Import basic logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-# Alpaca API credentials
 API_KEY = ALPACA_KEY
 SECRET_KEY = ALPACA_SECRET_KEY
 BASE_URL = APCA_API_BASE_URL
 
-# Twitch bot credentials
-BOT_USERNAME = "ATLien_Ke"
-OAUTH_TOKEN = "zofcsbz4ogu2om0hmiwuitq7l3xq5f"
-CLIENT_ID = "0vg1kmlbt52sp3szxv15zzlel3k1kz"
-CHANNEL = "atlien_ke"
-
-# Create Alpaca API client
 api = tradeapi.REST(API_KEY, SECRET_KEY, base_url=BASE_URL)
 
-# Create Twitch bot instance
-class TwitchBot(commands.Bot):
-    def __init__(self, username, irc_token, client_id, channel):
+class TradingBot(commands.Bot):
+    def __init__(self):
         super().__init__(
-            irc_token=irc_token,
-            client_id=client_id,
-            nick=username,
-            initial_channels=[channel]
+            client_id= TWITCH_CLIENT_ID,
+            nick="ATLien_Ke",
+            prefix="!",
+            initial_channels=["atlien_ke"],
+            token= TWITCH_TOKEN
         )
-        self.channel = channel
-
-        # Get the channel id, we will need this for Helix API calls
-        url = f'https://api.twitch.tv/helix/users?login={username}'
-        headers = {
-            'Client-ID': client_id,
-            'Authorization': f'Bearer {irc_token}',
-            'Accept': 'application/vnd.twitchtv.v5+json'
-        }
-        r = requests.get(url, headers=headers).json()
-        print(r)
-        self.channel_id = r['data'][0]['id']
 
     async def event_ready(self):
-        logging.info(f'Connected to Twitch chat: #{self.channel}')
-
+        print(f"Bot connected to Twitch chat.")
+    
     async def event_message(self, message):
-        if message.author.name.lower() == BOT_USERNAME.lower():
-            return  # Ignore messages sent by the bot itself
+        if message is None or message.author is None:
+            return
+        
+        if message.author.name.lower() == self.nick.lower():
+            return await message.channel.send("Message well received")
 
-        if message.content.startswith('!buy') or message.content.startswith('!sell'):
-            command, *params = message.content.split(' ')
-            response = self.execute_alpaca_command(command[1:], *params)
-            await message.channel.send_message(response)
-        elif message.content.lower() == 'hello':
-            response = f'Hello, {message.author.name}!'
-            await message.channel.send_message(response)
+        if message.content.startswith('!'):
+            await self.handle_commands(message)
         else:
-            await message.channel.send_message(f'Unrecognized command: {message.content}')
+            await message.channel.send("This is a trading bot. Please use the !buy or !sell command to trade.")
+            print("Sent response:", "This is a trading bot. Please use the !buy or !sell command to trade.")
 
-    def execute_alpaca_command(self, command, *params):
-        if command == 'buy' and len(params) == 2:
-            symbol, quantity = params
-            return self.buy_stock(symbol, int(quantity))
-        elif command == 'sell' and len(params) == 2:
-            symbol, quantity = params
-            return self.sell_stock(symbol, int(quantity))
-        else:
-            return f'Invalid command: {command}'
+    async def handle_commands(self, message):
+        print("Handling command:", message.content)
+        ctx = await self.get_context(message)
+        await self.invoke(ctx)
+    
+    @commands.command(name='buy')
+    async def buy_command(self, ctx):
+        params = ctx.message.content.split(' ')[1:]
+        if len(params) != 2:
+            await ctx.send("Invalid command. Usage: !buy [symbol] [quantity]")
+            return
+
+        symbol, quantity = params
+        response = self.buy_stock(symbol, int(quantity))
+        await ctx.send(response)
+        print("Sent response:", response)
+
+    @commands.command(name='sell')
+    async def sell_command(self, ctx):
+        params = ctx.message.content.split(' ')[1:]
+        if len(params) != 2:
+            await ctx.send("Invalid command. Usage: !sell [symbol] [quantity]")
+            return
+
+        symbol, quantity = params
+        response = self.sell_stock(symbol, int(quantity))
+        await ctx.send(response)
+        print("Sent response:", response)
 
     def buy_stock(self, symbol, quantity):
         try:
@@ -100,11 +91,6 @@ class TwitchBot(commands.Bot):
         except Exception as e:
             return f'Error occurred while selling {symbol}: {str(e)}'
 
-# Start the Twitch bot
-def start_twitch_bot():
-    bot = TwitchBot(BOT_USERNAME, OAUTH_TOKEN, CLIENT_ID, CHANNEL)
-    bot.run()
-
-# Start the Twitch bot and connect to the Alpaca API
 if __name__ == '__main__':
-    start_twitch_bot()
+    bot = TradingBot()
+    bot.run()

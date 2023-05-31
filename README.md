@@ -18,8 +18,10 @@ This Python project is quite complex and requires users to have at least basic u
 
 #### Application Programming Interface (APIs)
 * IEX cloud Free API - For Fetching stock information , stats and quotation values. [Get it here](https://iexcloud.io/)
-#### Twitch Trading Bots
-![](images/construction.jpg)
+* Twitch APIs - These APIs are creating the Intertwined Twitch bot that allows my followers to Trade
+* Alpaca Markets APIs -  These APIs allowed me to link my Application with my Paper Trading Account.   
+#### Twitch Trading Bot
+* 
 #### Final Trading Window 
 ![](images/construction.jpg)
 #### Live Trade in Action Demo
