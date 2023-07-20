@@ -9,10 +9,11 @@ class SwingHigh(Strategy):
     shares_per_ticker = {}  # Dictionary to specify the number of shares per ticker
 
     def initialize(self):
-        self.symbols = ["GOOG", "AAPL"]  # Add other symbols as needed
-        self.shares_per_ticker = {"GOOG": 10, "AAPL": 5}  # Specify the number of shares for each symbol
+        self.symbols = ["AAPL", "BAC", "V", "GM", "KO", "KHC", "OXY", "CVX", "HPQ", "PARA", "UPS", "MCO", "AXP", "JNJ", "MA", "DVA", "AMZN"]  # Add other symbols as needed
+        self.shares_per_ticker = {"AAPL": 60, "BAC": 373, "V":48, "GM":299, "KO":190, "KHC":325, 
+                                  "OXY":195, "CVX":76, "HPQ":357, "PARA":733, "UPS":63, "MCO":32, "AXP":66, 
+                                  "JNJ":74, "MA" :29, "DVA" : 112, "AMZN" : 86}   # Specify the number of shares for each symbol
         self.sleeptime = "10S"
-
     def on_trading_iteration(self):
         for symbol in self.symbols:
             if symbol not in self.data:
