@@ -13,11 +13,20 @@ class BuyHold(Strategy):
 
     def on_trading_iteration(self):
         if self.first_iteration:
-            symbol = "TSLA"
-            price = self.get_last_price(symbol)
-            quantity = self.cash // price
-            order = self.create_order(symbol, quantity, "buy")
-            self.submit_order(order)
+            stocks_and_quantities = [
+                {"symbol": "TSLA", "quantity": 5},
+                {"symbol": "AAPL", "quantity": 10},
+                # Add more stocks and quantities as needed
+            ]
+
+            for stock_info in stocks_and_quantities:
+                symbol = stock_info["symbol"]
+                quantity = stock_info["quantity"]
+                price = self.get_last_price(symbol)
+                cost = price * quantity
+                if self.cash >= cost:
+                    order = self.create_order(symbol, quantity, "buy")
+                    self.submit_order(order)
 
 
 if __name__ == "__main__":
@@ -30,7 +39,7 @@ if __name__ == "__main__":
         trader.run_all()
     else:
         start = datetime(2020, 1, 1)
-        end = datetime(2023,7, 31)
+        end = datetime(2023, 7, 31)
         BuyHold.backtest(
             YahooDataBacktesting,
             start,
