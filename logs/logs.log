@@ -1,7 +1,0 @@
-2023-07-20 16:47:17,963: root: INFO: SwingHigh : Executing the initialize lifecycle method
-2023-07-20 16:47:19,871: root: INFO: Sleeping until the market opens
-2023-07-20 16:54:26,883: root: INFO: SwingHigh : Executing the on_abrupt_closing event method
-2023-07-20 16:54:26,884: root: INFO: Trading finished
-2023-07-20 16:54:29,087: root: INFO: SwingHigh : Executing the on_abrupt_closing event method
-2023-07-20 16:54:29,087: root: INFO: Trading finished
-2023-07-20 16:54:29,142: root: INFO: Sleeping until the market opens
