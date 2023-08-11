@@ -12,7 +12,7 @@ import plotly.express as px
 from streamlit import pyplot as st_plt
 from statistics import mean
 from scipy import stats 
-#from secrets_1 import IEX_CLOUD_API_TOKEN
+from secrets_1 import IEX_CLOUD_API_TOKEN
 
 #Declaring all the global variables
 global benchmark
@@ -70,7 +70,13 @@ def main():
 
     # Add the Start Date and End Date
     with st.form(key='start_end_dates'):
-        st.header("Add/End Date for Data Fetching using IEX cloud")
+        st.header("Add/End Date for Data Fetching using IEX cloud and Yahoo Finance")
+        st.warning("Read the documentation to understand what each platform does technically")
+        option = st.radio(
+                            'Please select the platform you would like to use(Default; Stock and Reward Analyzer)', (
+                            'Level I : Stock & Reward visualizer', 'Level II : Equal-Weight Optimizer', 'Level III: Quantitative momentum Strategizer' , 'Level IV : Value Investing Strategizer'
+                            )
+                        )
         col1, col2 = st.columns([2, 1])
         with col1:
             start_date = st.date_input("Start date:")
@@ -81,13 +87,6 @@ def main():
             stocks_all = yf.download(st.session_state.tickers, start=start_date, end=end_date)
             if not stocks_all.empty:
                 st.success("Data downloaded successfully! Analyst Can Now Investigate A Stock's perfomance against the selected Benchmark")
-                option = st.selectbox(
-                            'Please select the platform you would like to use(Default; Stock and Reward Analyzer)', (
-                            'Level I : Stock & Reward visualizer', 'Level II : Equal-Weight Optimizer', 'Level III: Quantitative momentum Strategizer' , 'Level IV : Value Investing Strategizer'
-                            )
-                        )
-                st.write('You selected:', option)
-
                 if option == 'Level I : Stock & Reward visualizer':
                     close_all = stocks_all.loc[:, "Close"].copy()
                     plt.figure(figsize=(15, 8))
@@ -225,10 +224,41 @@ def main():
                     sns.heatmap(return_all_close.cov(), cmap="Greens", annot=True, annot_kws={"size":15}, vmax=0.6)
                     covariance_graph = plt.gcf()
                     st.pyplot(covariance_graph)
-                    'Level II : Equal-Weight Optimizer', 'Level III: Quantitative momentum Strategizer' , 'Level IV : Value Investing Strategizer'
+                if option == 'Level II : Equal-Weight Optimizer':
+                    st.write("Checked")
+                    portfolio_size = st.number_input("Enter the value of your portfolio in ($):")
+                    try:
+                        val = float(portfolio_size)
+                    except ValueError:
+                        print("That's not a number! \n Try again:")
+                        portfolio_size = input("Enter the value of your portfolio in ($):")
+                    
+                    my_columns = ['Ticker', 'Price', 'Market Capitalization', 'Number Of Shares to Buy']
+                    final_dataframe = pd.DataFrame(columns=my_columns)
 
-                if option == 'Level II: Equal-Weight Optimizer':
-                    pass
+                    symbol_groups = list(chunks(st.session_state.tickers, len(st.session_state.tickers)))
+                    symbol_strings = []
+                    for i in range(0, len(symbol_groups)):
+                        symbol_strings.append(','.join(symbol_groups[i]))
+                    final_dataframe = pd.DataFrame(columns=my_columns)
+                    if benchmark == 'SPY' :
+                        for symbol_string in symbol_strings:
+                            batch_api_call_url = f'https://cloud.iexapis.com/stable/stock/market/batch/?types=quote&symbols={symbol_string}&token={IEX_CLOUD_API_TOKEN}'
+                            data = requests.get(batch_api_call_url).json()
+                            for symbol in symbol_string.split(','):
+                                final_dataframe = final_dataframe.append(
+                                    pd.Series([symbol,
+                                            data[symbol]['quote']['latestPrice'],
+                                            data[symbol]['quote']['marketCap'],
+                                            data[symbol]['quote']['latestTime']
+                                            ],
+                                            index=my_columns),
+                                        ignore_index=True)
+                    position_size = float(portfolio_size) / len(final_dataframe.index)
+                    for i in range(0, len(final_dataframe['Ticker'])):
+                        final_dataframe.loc[i, 'Number Of Shares to Buy'] = math.floor(position_size / final_dataframe['Price'][i])          
+                    st.write(final_dataframe)
+
                 if option == 'Level III : Quantitative momentum Strategizer':
                     pass
                 if option == 'Level IV: Value Investing Strategizer':
@@ -237,8 +267,10 @@ def main():
             else:
                 st.error("Failed to download data. Try analyzing later")
             
-def equal():
-    pass
+def chunks(lst, n):
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+
 def quantitative():
     pass
 def value():
