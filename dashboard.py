@@ -18,8 +18,6 @@ st.title("Xpay Recommendation Algorithms - Level I to III")
 message =  "This project is intended for users with an intermediate level of Finance"
 st.warning(message)
 st.image('images/finance.jpg')
-
-st.success("Please select any of the following platforms to get started")
 def main():
     # Retrieve the tickers from the app state or initialize as an empty list
     if 'tickers' not in st.session_state:
@@ -67,12 +65,22 @@ def main():
 
     # Add the Start Date and End Date
     with st.form(key='start_end_dates'):
-        st.header("Add/End Date Fetching & Price Frame + Graph")
+        st.header("Add/End Date for Data Fetching using IEX cloud")
         col1, col2 = st.columns([2, 1])
         with col1:
             start_date = st.date_input("Start date:")
         with col2:
             end_date = st.date_input("End Date:")
+        if start_date and end_date and st.form_submit_button("Submit"):
+            # Perform download on all stocks
+            stocks_all = yf.download(st.session_state.tickers, start=start_date, end=end_date)      
+            if not stocks_all.empty:
+                st.success("Data downloaded successfully! Analyst Can Now Investigate A Stock's perfomance against the selected Benchmark")
+    option = st.selectbox(
+                'Please select the platform you would like to use', (
+                'Level I : Stock & Reward visualizer', 'Level II : Equal-Weight Optimizer', 'Level III: Quantitative momentum Strategizer' , 'Level IV : Value Investing Strategizer'
+                )
+            )
 def stock():
     pass
 def equal():
