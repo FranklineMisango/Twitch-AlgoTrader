@@ -34,7 +34,7 @@ This Python project is quite complex and requires users to have at least basic u
 * Run `pip install requirements.txt`
 * Create a secrets_1.py and write in that `IEX_CLOUD_API_TOKEN = YOUR_IEX_CLOUD_API`
 * Create a config.py and paste in that your `ALPACA API credentials` and `Twitch credentials` all specified in the twitch.py
-* Run `streamlit run stock.py` and do the same for `Equal.py , value.py, quantitative.py` to analyze stock recommendations
+* Run `streamlit run dashboard.py` to analyze stock recommendations
 * To start trading, run `python twitch.py` and observe `connected to bot` successfully
 * Login to your own twitch account and in your chat, try `!buy STOCK_SYMBOL Number` replacing Stock symbol and the number
 * To trade for my behalf lol, Follow me on Twitch `ATLien_ke` and join my message list when the chat & live stream opens, you can be allowed in
