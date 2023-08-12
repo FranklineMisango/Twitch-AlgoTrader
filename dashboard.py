@@ -7,12 +7,14 @@ import yfinance as yf
 import pandas as pd
 import seaborn as sns
 import numpy as np
+import requests
+from statistics import mean
+from scipy import stats
+from secrets_1 import IEX_CLOUD_API_TOKEN
 import matplotlib.pyplot as plt
 import plotly.express as px
 from streamlit import pyplot as st_plt
-from statistics import mean
-from scipy import stats 
-from secrets_1 import IEX_CLOUD_API_TOKEN
+
 
 #Declaring all the global variables
 global benchmark
@@ -72,6 +74,12 @@ def main():
     with st.form(key='start_end_dates'):
         st.header("Add/End Date for Data Fetching using IEX cloud and Yahoo Finance")
         st.warning("Read the documentation to understand what each platform does technically")
+        portfolio_size = st.number_input("Enter the value of your portfolio in ($):")
+        try:
+            val = float(portfolio_size)
+        except ValueError:
+            print("That's not a number! \n Try again:")
+            portfolio_size = input("Enter the value of your portfolio in ($):")
         option = st.radio(
                             'Please select the platform you would like to use(Default; Stock and Reward Analyzer)', (
                             'Level I : Stock & Reward visualizer', 'Level II : Equal-Weight Optimizer', 'Level III: Quantitative momentum Strategizer' , 'Level IV : Value Investing Strategizer'
@@ -225,13 +233,6 @@ def main():
                     covariance_graph = plt.gcf()
                     st.pyplot(covariance_graph)
                 if option == 'Level II : Equal-Weight Optimizer':
-                    portfolio_size = st.number_input("Enter the value of your portfolio in ($):")
-                    try:
-                        val = float(portfolio_size)
-                    except ValueError:
-                        print("That's not a number! \n Try again:")
-                        portfolio_size = input("Enter the value of your portfolio in ($):")
-                    
                     my_columns = ['Ticker', 'Price', 'Market Capitalization', 'Number Of Shares to Buy']
                     final_dataframe = pd.DataFrame(columns=my_columns)
 
@@ -259,20 +260,11 @@ def main():
                     st.write(final_dataframe)
 
                 if option == 'Level III: Quantitative momentum Strategizer':
-                    st.write("Checked")
-                    portfolio_size = st.number_input("Enter the value of your portfolio in ($):")
-                    try:
-                        val = float(portfolio_size)
-                    except ValueError:
-                        print("That's not a number! \n Try again:")
-                        portfolio_size = input("Enter the value of your portfolio in ($):")
-                    
                     # Blueprints for Showcasing the Final Data Frames
                     symbol_groups = list(chunks(st.session_state.tickers, len(st.session_state.tickers)))
                     symbol_strings = []
                     for i in range(0, len(symbol_groups)):
                         symbol_strings.append(','.join(symbol_groups[i]))
-
 
                     hqm_columns = [
                             'Ticker', 
@@ -336,8 +328,109 @@ def main():
                         hqm_dataframe.loc[i, 'Recommended Number of shares to Buy'] = math.floor(position_size / hqm_dataframe['Price'][i])         
                     st.write(hqm_dataframe)
 
-                if option == 'Level IV: Value Investing Strategizer':
-                    pass
+                if option == 'Level IV : Value Investing Strategizer':
+                    
+                    if portfolio_size is not None:
+                        # Blueprints for Showcasing the Final Data Frames
+                        symbol_groups = list(chunks(st.session_state.tickers, len(st.session_state.tickers)))
+                        symbol_strings = []
+                        for i in range(0, len(symbol_groups)):
+                            symbol_strings.append(','.join(symbol_groups[i]))
+
+                        rv_columns = [
+                        'Ticker',
+                        'Price',
+                        'Number of Shares to Buy', 
+                        'Price-to-Earnings Ratio',
+                        'PE Percentile',
+                        'Price-to-Book Ratio',
+                        'PB Percentile',
+                        'Price-to-Sales Ratio',
+                        'PS Percentile',
+                        'EV/EBITDA',
+                        'EV/EBITDA Percentile',
+                        'EV/GP',
+                        'EV/GP Percentile',
+                        'RV Score'
+                        ]
+
+                        rv_dataframe = pd.DataFrame(columns = rv_columns)
+
+                        for symbol_string in symbol_strings:
+                            batch_api_call_url = f'https://cloud.iexapis.com/stable/stock/market/batch?symbols={symbol_string}&types=quote,advanced-stats&token={IEX_CLOUD_API_TOKEN}'
+                            data = requests.get(batch_api_call_url).json()
+                            for symbol in symbol_string.split(','):
+                                enterprise_value = data[symbol]['advanced-stats']['enterpriseValue']
+                                ebitda = data[symbol]['advanced-stats']['EBITDA']
+                                gross_profit = data[symbol]['advanced-stats']['grossProfit']
+                                
+                                try:
+                                    ev_to_ebitda = enterprise_value/ebitda
+                                except TypeError:
+                                    ev_to_ebitda = np.NaN
+                                
+                                try:
+                                    ev_to_gross_profit = enterprise_value/gross_profit
+                                except TypeError:
+                                    ev_to_gross_profit = np.NaN
+                                    
+                                rv_dataframe = rv_dataframe.append(
+                                    pd.Series([
+                                        symbol,
+                                        data[symbol]['quote']['latestPrice'],
+                                        'N/A',
+                                        data[symbol]['quote']['peRatio'],
+                                        'N/A',
+                                        data[symbol]['advanced-stats']['priceToBook'],
+                                        'N/A',
+                                        data[symbol]['advanced-stats']['priceToSales'],
+                                        'N/A',
+                                        ev_to_ebitda,
+                                        'N/A',
+                                        ev_to_gross_profit,
+                                        'N/A',
+                                        'N/A'
+                                ],
+                                index = rv_columns),
+                                    ignore_index = True
+                                )
+                        #Removing all the Null axes       
+                        for column in ['Price-to-Earnings Ratio', 'Price-to-Book Ratio','Price-to-Sales Ratio',  'EV/EBITDA','EV/GP']:
+                            rv_dataframe[column].fillna(rv_dataframe[column].mean(), inplace = True)
+                        #rv_dataframe[rv_dataframe.isnull().any(axis=1)]
+                        metrics = {
+                            'Price-to-Earnings Ratio': 'PE Percentile',
+                            'Price-to-Book Ratio':'PB Percentile',
+                            'Price-to-Sales Ratio': 'PS Percentile',
+                            'EV/EBITDA':'EV/EBITDA Percentile',
+                            'EV/GP':'EV/GP Percentile'}
+                        for row in rv_dataframe.index:
+                            for metric in metrics.keys():
+                                rv_dataframe.loc[row, metrics[metric]] = stats.percentileofscore(rv_dataframe[metric], rv_dataframe.loc[row, metric])/100
+
+                        # Print each percentile score to make sure it was calculated properly
+                        for metric in metrics.values():
+                            print(rv_dataframe[metric])
+
+                        for row in rv_dataframe.index:
+                            value_percentiles = []
+                            for metric in metrics.keys():
+                                value_percentiles.append(rv_dataframe.loc[row, metrics[metric]])
+                            rv_dataframe.loc[row, 'RV Score'] = mean(value_percentiles)
+                        position_size = float(portfolio_size) / len(rv_dataframe.index)
+                        for i in range(0, len(rv_dataframe['Ticker'])):
+                            rv_dataframe.loc[i, 'Number of Shares to Buy'] = int(math.floor(position_size / rv_dataframe['Price'][i]))
+
+
+                        if rv_dataframe is not None:
+                            st.write(rv_dataframe)
+                    else:
+                        portfolio_size = st.number_input("Enter the value of your portfolio in ($):")
+                        try:
+                            val = float(portfolio_size)
+                        except ValueError:
+                            print("That's not a number! \n Try again:")
+                            portfolio_size = input("Enter the value of your portfolio in ($):")
 
             else:
                 st.error("Failed to download data. Try analyzing later")
@@ -345,11 +438,6 @@ def main():
 def chunks(lst, n):
     for i in range(0, len(lst), n):
         yield lst[i:i + n]
-
-def quantitative():
-    pass
-def value():
-    pass
 
 if __name__ == "__main__":
     main()
