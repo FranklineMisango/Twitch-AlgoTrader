@@ -19,47 +19,58 @@ st.title("🦜🔗 Algorithmic Trading Framework using Lumibots API")
 message =  "This project is intended for users with an intermediate knowledge of Finance"
 st.warning(message)
 
+
 def main():
     global stocks_all
-    # Retrieve the tickers from the app state or initialize as an empty list
+    global ticker_input
+    global quantities_input
+    # Retrieve the tickers and quantities from the app state or initialize as empty lists
     if 'tickers' not in st.session_state:
         st.session_state.tickers = []
-
-    #retrieve the empty quantity values for each ticker
     if 'quantities' not in st.session_state:
-        st.session_state.quantities =[]
+        st.session_state.quantities = []
 
-    # Create a form for the ticker input
+    # Create a form for the ticker and quantity input
     with st.form(key='ticker_form'):
-        col1, col2, col3, col4 = st.columns([5, 5, 5, 5])
+        col1, col2, col3 = st.columns([4, 4, 2])  # Adjust column widths as needed
         with col1:
             ticker_input = st.text_input("Enter a stock ticker:", key='ticker_input')
         with col2:
-            add_ticker_button = st.form_submit_button(label="Add +")
-            remove_ticker_button = st.form_submit_button(label="Remove -")
+            quantities_input = st.number_input("Enter the stock quantity")
         with col3:
-            quantities_input =st.number_input("Enter the Stock quantity")
-        with col4:
-            add_quantity_button = st.form_submit_button(label="Confirm")
-            remove_quantity_button = st.form_submit_button(label="Reset -")
+            add_ticker_button = st.form_submit_button(label="Add +")
+            delete_quantity_button = st.form_submit_button(label="Delete -")
+        
+        reset_everything_button = st.form_submit_button(label = "Reset")
 
         # Check if the ticker is already in the list
         is_duplicate = ticker_input in st.session_state.tickers
 
-        # Add the entered ticker to the list when the user clicks the "+" button
+        # Add the entered ticker and quantity to the lists when the user clicks the "+" button
         if add_ticker_button and not is_duplicate:
             st.session_state.tickers.append(ticker_input)
+            st.session_state.quantities.append(quantities_input)
+        
+        if delete_quantity_button:
+            if ticker_input in st.session_state.tickers:
 
-        # Remove the last ticker from the list when the "-" button is clicked
-        if remove_ticker_button:
-            if st.session_state.tickers:
-                st.session_state.tickers.pop()
-        # Display the current list of tickers and benchmarks
+                st.session_state.tickers.remove(ticker_input)
+                st.session_state.quantities.pop(int(quantities_input))
+
+        if reset_everything_button:
+            if reset_everything_button:
+                st.session_state.tickers = []
+                st.session_state.quantities = []
+
+
+        # Display the current list of tickers and quantities as key-value pairs
         st.markdown("**Current ticker(s) and quantity**")
-        st.write(st.session_state.tickers),st.write (st.session_state.quantities)
-
+        for ticker, quantity in zip(st.session_state.tickers, st.session_state.quantities):
+            st.write(f"{ticker}: {quantity}")
 
 def time():
+        global start_date
+        global end_date
         # Add the Start Date and End Date
         with st.form(key='start_end_dates'):
             st.header("Backtesting Strategies using Lumibots API")
@@ -72,7 +83,7 @@ def time():
                 portfolio_size = input("Enter the value of your portfolio in ($):")
             option = st.radio(
                                 'Please select the Strategy you would like to use;', (
-                                'Buy & Hold' , "Swing High", ""
+                                'Buy & Hold' , "Swing High"
                                 )
                             )
             col1, col2 = st.columns([2, 2])
@@ -81,6 +92,46 @@ def time():
             with col2:
                 end_date = st.date_input("End Date:")
 
+            if start_date and end_date and st.form_submit_button("Submit"):
+                if option == "":
+                    pass
 
-main()
+
+class BuyHold(): #replace with strategy
+
+    def initialize(self):
+        self.sleeptime = "1D"
+
+    def on_trading_iteration(self):
+        if self.first_iteration:
+                symbol = ticker_input
+                quantity = quantities_input
+                price = self.get_last_price(symbol)
+                cost = price * quantity
+                self.cash = 200000
+                if self.cash >= cost:
+                    order = self.create_order(symbol, quantity, "buy")
+                    self.submit_order(order)
+
+
+if __name__ == '__main__':
+    main()
+
 time()
+
+if __name__ == "__BuyHold__":
+    trade = False
+    if trade:
+        broker = Alpaca(ALPACA_CONFIG)
+        strategy = BuyHold(broker=broker)
+        trader = Trader()
+        trader.add_strategy(strategy)
+        trader.run_all()
+    else:
+        start = start_date
+        end = end_date
+        BuyHold.backtest(
+            YahooDataBacktesting,
+            start,
+            end
+        )
