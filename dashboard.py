@@ -10,18 +10,26 @@ import numpy as np
 import requests
 from statistics import mean
 from scipy import stats
-from secrets_1 import IEX_CLOUD_API_TOKEN
+from config import IEX_CLOUD_API_TOKEN
 import matplotlib.pyplot as plt
 import plotly.express as px
 from streamlit import pyplot as st_plt
+import os
+from config import Openai_api_key
+from langchain.llms import OpenAI
+from langchain.embeddings import OpenAIEmbeddings
+import streamlit as st
+from langchain.document_loaders import PyPDFLoader
+from langchain.vectorstores import Chroma
+
 
 
 #Declaring all the global variables
 global benchmark
 
 
-st.title("Xpay Recommendation Algorithms - Level I to III")
-message =  "This project is intended for users with an intermediate level of Finance"
+st.title("🦜🔗 Financial Research Recommendation Algorithms - Level I to IV")
+message =  "This project is intended for users with an intermediate knowledge of Finance"
 st.warning(message)
 st.image('images/finance.jpg')
 def main():
@@ -53,12 +61,13 @@ def main():
 
     # Create a dropdown menu for selecting a benchmark
     with st.form(key='benchmark_form'):
-        col1, col2 = st.columns([2, 1])
+        col1, col2 = st.columns([2, 2])
         with col1:
             benchmark = st.selectbox("Select One benchmark (More will be added soon):", ["SPY", "DJIA", "HSI", "UKX", "SX5E", "SHCOMP", "N225", "STI", "NSEASI", "DFMGI", "ADXGI", "TASI"])
         with col2:
             add_benchmark_button = st.form_submit_button("Add +")
             remove_benchmark_button = st.form_submit_button("Remove -")
+
 
     # Add or remove the selected benchmark from the list when the user clicks the corresponding button
     if add_benchmark_button:
@@ -72,7 +81,7 @@ def main():
 
     # Add the Start Date and End Date
     with st.form(key='start_end_dates'):
-        st.header("Add/End Date for Data Fetching using IEX cloud and Yahoo Finance")
+        st.header("Data Fetching using IEX cloud, Langchain LLM and Yahoo Finance APIs")
         st.warning("Read the documentation to understand what each platform does technically")
         portfolio_size = st.number_input("Enter the value of your portfolio in ($):")
         try:
@@ -81,11 +90,11 @@ def main():
             print("That's not a number! \n Try again:")
             portfolio_size = input("Enter the value of your portfolio in ($):")
         option = st.radio(
-                            'Please select the platform you would like to use(Default; Stock and Reward Analyzer)', (
-                            'Level I : Stock & Reward visualizer', 'Level II : Equal-Weight Optimizer', 'Level III: Quantitative momentum Strategizer' , 'Level IV : Value Investing Strategizer'
+                            'Please select the platform you would like to use;', (
+                            'Level I : Stock & Reward visualizer', 'Level I : LangChain Annual Report summary','Level II : Equal-Weight Optimizer', 'Level III: Quantitative momentum Strategizer' , 'Level IV : Value Investing Strategizer'
                             )
                         )
-        col1, col2 = st.columns([2, 1])
+        col1, col2 = st.columns([2, 2])
         with col1:
             start_date = st.date_input("Start date:")
         with col2:
@@ -94,7 +103,7 @@ def main():
             # Perform download on all stocks
             stocks_all = yf.download(st.session_state.tickers, start=start_date, end=end_date)
             if not stocks_all.empty:
-                st.success("Data downloaded successfully! Analyst Can Now Investigate A Stock's perfomance against the selected Benchmark")
+                st.success("Data downloaded successfully! Analyst Can Now Investigate A Stock's perfomance against the selected benchmark in each desired platform")
                 if option == 'Level I : Stock & Reward visualizer':
                     close_all = stocks_all.loc[:, "Close"].copy()
                     plt.figure(figsize=(15, 8))
@@ -259,6 +268,73 @@ def main():
                         final_dataframe.loc[i, 'Number Of Shares to Buy'] = math.floor(position_size / final_dataframe['Price'][i])          
                     st.write(final_dataframe)
 
+                if option == 'Level I : LangChain Annual Report summary':
+                    from langchain.agents.agent_toolkits import (
+                        create_vectorstore_agent,
+                        VectorStoreToolkit,
+                        VectorStoreInfo
+                    )
+                    os.environ['OPENAI_API_KEY'] = Openai_api_key
+
+                    # Create instance of OpenAI LLM
+                    llm = OpenAI(temperature=0.1, verbose=True)
+                    embeddings = OpenAIEmbeddings()
+
+                    st.success('This App allows you to summarize the financial health of a company after uploading its Annual document')
+
+                    # Create a file uploader in Streamlit
+                    uploaded_file = st.file_uploader("Upload The Annual Financial document (PDF)", type="pdf")
+
+                    if uploaded_file is not None:
+                        # Save the uploaded file to a temporary location
+                        with open("uploaded_document.pdf", "wb") as file:
+                            file.write(uploaded_file.read())
+
+                        # Load the uploaded PDF document using PyPDFLoader
+                        loader = PyPDFLoader("uploaded_document.pdf")
+
+                        # Split pages from the PDF
+                        pages = loader.load_and_split()
+
+                        # Load documents into the vector database (ChromaDB)
+                        store = Chroma.from_documents(pages, embeddings, collection_name='uploaded_document')
+
+                        # Create vectorstore info object
+                        vectorstore_info = VectorStoreInfo(
+                            name="uploaded_document",
+                            description="Uploaded financial document as a PDF",
+                            vectorstore=store
+                        )
+
+                        # Convert the document store into a langchain toolkit
+                        toolkit = VectorStoreToolkit(vectorstore_info=vectorstore_info)
+
+                        # Add the toolkit to an end-to-end LC
+                        agent_executor = create_vectorstore_agent(
+                            llm=llm,
+                            toolkit=toolkit,
+                            verbose=True
+                        )
+
+                        # Create a text input box for the user
+                        prompt = st.text_input('Input your prompt here')
+
+                        # If the user hits enter
+                        if prompt:
+                            # Then pass the prompt to the LLM
+                            response = agent_executor.run(prompt)
+                            # ...and write it out to the screen
+                            st.write(response)
+
+                            # With a streamlit expander  
+                            with st.expander('Document Similarity Search'):
+                                # Find the relevant pages
+                                search = store.similarity_search_with_score(prompt) 
+                                # Write out the first 
+                                st.write(search[0][0].page_content)
+
+                        # Delete the temporary file
+                        os.remove("uploaded_document.pdf")
                 if option == 'Level III: Quantitative momentum Strategizer':
                     # Blueprints for Showcasing the Final Data Frames
                     symbol_groups = list(chunks(st.session_state.tickers, len(st.session_state.tickers)))
@@ -281,7 +357,7 @@ def main():
                             'HQM Score'
                             ]
                     hqm_dataframe = pd.DataFrame(columns = hqm_columns)
-                    if benchmark == 'S&P 500' :
+                    if benchmark == 'SPY' :
                         for symbol_string in symbol_strings:
                             batch_api_call_url = f'https://cloud.iexapis.com/stable/stock/market/batch/?types=stats,quote&symbols={symbol_string}&token={IEX_CLOUD_API_TOKEN}'
                             data = requests.get(batch_api_call_url).json()
@@ -329,7 +405,6 @@ def main():
                     st.write(hqm_dataframe)
 
                 if option == 'Level IV : Value Investing Strategizer':
-                    
                     if portfolio_size is not None:
                         # Blueprints for Showcasing the Final Data Frames
                         symbol_groups = list(chunks(st.session_state.tickers, len(st.session_state.tickers)))
