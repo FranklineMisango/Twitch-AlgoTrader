@@ -82,8 +82,8 @@ def time():
                 print("That's not a number! \n Try again:")
                 portfolio_size = input("Enter the value of your portfolio in ($):")
             option = st.radio(
-                                'Please select the Strategy you would like to use;', (
-                                'Buy & Hold' , "Swing High"
+                                'Please select the Strategy/services you would like to use (more under development);', (
+                                'Buy & Hold (Strategy)' , "Swing High(Strategy)", "Trend", "GLD Signals", "Portfolio earnings"
                                 )
                             )
             col1, col2 = st.columns([2, 2])
@@ -93,9 +93,18 @@ def time():
                 end_date = st.date_input("End Date:")
 
             if start_date and end_date and st.form_submit_button("Submit"):
-                if option == "":
+                if option == "Buy & Hold":
                     pass
-
+                if option == "Swing High":
+                    pass
+                if option == "ma-cross strategy":
+                    pass
+                if option == "Trend":
+                    pass
+                if option == "GLD signal":
+                    pass
+                if option == "Portfolio earnings":
+                    pass
 
 class BuyHold(): #replace with strategy
 
