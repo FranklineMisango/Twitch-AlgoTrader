@@ -105,6 +105,8 @@ def time():
                     pass
                 if option == "Portfolio earnings":
                     pass
+                if option == "single stock backtest":
+                    pass
 
 class BuyHold(): #replace with strategy
 
