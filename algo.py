@@ -1,8 +1,7 @@
 from config import ALPACA_CONFIG
 from lumibot.brokers import Alpaca
-#from lumibot.strategies import Strategy
 from lumibot.backtesting import YahooDataBacktesting
-from lumibot.traders import Trader
+from lumibot.traders import Trader 
 import streamlit as st
 import datetime as dt
 from dateutil.relativedelta import relativedelta
@@ -71,6 +70,7 @@ def main():
 def time():
         global start_date
         global end_date
+        global portfolio_size
         # Add the Start Date and End Date
         with st.form(key='start_end_dates'):
             st.header("Backtesting Strategies using Lumibots API")
@@ -83,7 +83,7 @@ def time():
                 portfolio_size = input("Enter the value of your portfolio in ($):")
             option = st.radio(
                                 'Please select the Strategy/services you would like to use (more under development);', (
-                                'Buy & Hold (Strategy)' , "Swing High(Strategy)", "Trend", "GLD Signals", "Portfolio earnings"
+                                'Buy & Hold (Strategy)' , "Swing High(Strategy)", "Trend", "GLD Signals", "Portfolio earnings", "single stock earnings"
                                 )
                             )
             col1, col2 = st.columns([2, 2])
@@ -93,14 +93,33 @@ def time():
                 end_date = st.date_input("End Date:")
 
             if start_date and end_date and st.form_submit_button("Submit"):
-                if option == "Buy & Hold":
+                if option == "Buy & Hold (Strategy)":
                     pass
                 if option == "Swing High":
                     pass
                 if option == "ma-cross strategy":
                     pass
                 if option == "Trend":
-                    pass
+                    st.success("Trend analysis for the stock ticker")
+                    period = (end_date - start_date).days
+                    period_year = f'{period}d'
+
+                    portfolio = qs.utils.download_returns(ticker_input, period=period_year)
+                    # print(portfolio.head())
+
+                    # print("Available stats:")
+                    # print([fx for fx in dir(qs.stats) if fx[0] != "_"])
+
+                    st.write(f"Sharpe: {qs.stats.sharpe(portfolio)}")
+                    st.write(f"Best Day: {qs.stats.best(portfolio)}")
+                    st.write(f"Best Day: {qs.stats.best(portfolio, aggregate='M')}")
+
+                    qs.extend_pandas()
+
+                    st.write(portfolio.cagr())
+                    st.write(portfolio.max_drawdown())
+                    st.write(portfolio.monthly_returns())
+
                 if option == "GLD signal":
                     pass
                 if option == "Portfolio earnings":
@@ -108,41 +127,7 @@ def time():
                 if option == "single stock backtest":
                     pass
 
-class BuyHold(): #replace with strategy
-
-    def initialize(self):
-        self.sleeptime = "1D"
-
-    def on_trading_iteration(self):
-        if self.first_iteration:
-                symbol = ticker_input
-                quantity = quantities_input
-                price = self.get_last_price(symbol)
-                cost = price * quantity
-                self.cash = 200000
-                if self.cash >= cost:
-                    order = self.create_order(symbol, quantity, "buy")
-                    self.submit_order(order)
 
 
-if __name__ == '__main__':
-    main()
-
+main()
 time()
-
-if __name__ == "__BuyHold__":
-    trade = False
-    if trade:
-        broker = Alpaca(ALPACA_CONFIG)
-        strategy = BuyHold(broker=broker)
-        trader = Trader()
-        trader.add_strategy(strategy)
-        trader.run_all()
-    else:
-        start = start_date
-        end = end_date
-        BuyHold.backtest(
-            YahooDataBacktesting,
-            start,
-            end
-        )
