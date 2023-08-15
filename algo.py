@@ -83,7 +83,7 @@ def time():
                 portfolio_size = input("Enter the value of your portfolio in ($):")
             option = st.radio(
                                 'Please select the Strategy/services you would like to use (more under development);', (
-                                'Buy & Hold (Strategy)' , "Swing High(Strategy)", "Trend", "GLD Signals", "Portfolio earnings", "single stock earnings"
+                                'Buy & Hold (Strategy)' , "Swing High(Strategy)", "Trend", "GLD signal", "Portfolio earnings", "single stock earnings"
                                 )
                             )
             col1, col2 = st.columns([2, 2])
@@ -103,6 +103,7 @@ def time():
                     st.success("Trend analysis for the stock ticker")
                     period = (end_date - start_date).days
                     period_year = f'{period}d'
+                    st.write(period_year)
 
                     portfolio = qs.utils.download_returns(ticker_input, period=period_year)
                     # print(portfolio.head())
@@ -121,7 +122,41 @@ def time():
                     st.write(portfolio.monthly_returns())
 
                 if option == "GLD signal":
-                    pass
+                    st.write("checked")
+                    gld = pd.DataFrame(yf.download(ticker_input, start_date)['Close'])
+                    gld['9-day'] = gld['Close'].rolling(9).mean()
+                    gld['21-day'] = gld['Close'].rolling(21).mean()
+                    gld['Signal'] = np.where(np.logical_and(gld['9-day'] > gld['21-day'],
+                                            gld['9-day'].shift(1) < gld['21-day'].shift(1)),
+                                            "BUY", None)
+                    gld['Signal'] = np.where(np.logical_and(gld['9-day'] < gld['21-day'],
+                                            gld['9-day'].shift(1) > gld['21-day'].shift(1)),
+                                            "SELL", gld['Signal'])
+
+                    def signal(df, start=start_date, end=end_date):
+                        df = pd.DataFrame(yf.download(ticker_input, start, end)['Close'])
+                        df['9-day'] = df['Close'].rolling(9).mean()
+                        df['21-day'] = df['Close'].rolling(21).mean()
+                        df['Signal'] = np.where(np.logical_and(df['9-day'] > df['21-day'],
+                                                df['9-day'].shift(1) < df['21-day'].shift(1)),
+                                                "BUY", None)
+                        df['Signal'] = np.where(np.logical_and(df['9-day'] < df['21-day'],
+                                                df['9-day'].shift(1) > df['21-day'].shift(1)),
+                                                "SELL", df['Signal'])
+                        return df, df.iloc[-1].Signal
+
+                    st.write(gld)
+                    st.write("-" * 10)
+                    st.write(gld.iloc[-1].Signal)
+                    options_gld = st.radio("Save gld as a csv ? ", ("Yes", "No "))
+                    if option  == "Yes":
+                        gld.to_csv('gld_signal.csv')
+                    if option == "No":
+                        data, sig = signal(gld)
+                        st.write(data)
+                        st.write(sig)
+                        st.write(len(data))
+
                 if option == "Portfolio earnings":
                     pass
                 if option == "single stock backtest":
