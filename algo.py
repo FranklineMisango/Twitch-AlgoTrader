@@ -122,7 +122,7 @@ def time():
                     st.write(portfolio.monthly_returns())
 
                 if option == "GLD signal":
-                    st.write("checked")
+                    #TODO - Fix the time slices to match user input ; relative duration 
                     gld = pd.DataFrame(yf.download(ticker_input, start_date)['Close'])
                     gld['9-day'] = gld['Close'].rolling(9).mean()
                     gld['21-day'] = gld['Close'].rolling(21).mean()
@@ -148,15 +148,13 @@ def time():
                     st.write(gld)
                     st.write("-" * 10)
                     st.write(gld.iloc[-1].Signal)
-                    options_gld = st.radio("Save gld as a csv ? ", ("Yes", "No "))
-                    if option  == "Yes":
-                        gld.to_csv('gld_signal.csv')
-                    if option == "No":
-                        data, sig = signal(gld)
-                        st.write(data)
-                        st.write(sig)
-                        st.write(len(data))
-
+                    st.success("Saving the GLD csv")
+                    gld.to_csv('gld_signal.csv')
+                    data, sig = signal(gld)
+                    st.write(data)
+                    st.write(sig)
+                    
+                    
                 if option == "Portfolio earnings":
                     pass
                 if option == "single stock backtest":
