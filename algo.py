@@ -3,9 +3,11 @@ from lumibot.brokers import Alpaca
 from lumibot.backtesting import YahooDataBacktesting
 from lumibot.traders import Trader 
 import streamlit as st
+from lumibot.strategies import Strategy
 import datetime as dt
 from dateutil.relativedelta import relativedelta
 import os
+from datetime import datetime
 import pandas as pd
 import pandas_datareader as pdr
 import numpy as np
@@ -83,7 +85,7 @@ def time():
                 portfolio_size = input("Enter the value of your portfolio in ($):")
             option = st.radio(
                                 'Please select the Strategy/services you would like to use (more under development);', (
-                                'Buy & Hold (Strategy)' , "Swing High(Strategy)", "Trend", "GLD signal", "Portfolio earnings", "single stock earnings"
+                                'Buy & Hold (Strategy & Backtesting)' , "Swing High(Strategy)", "Trend", "GLD signal", "Portfolio earnings", "single stock earnings"
                                 )
                             )
             col1, col2 = st.columns([2, 2])
@@ -92,9 +94,45 @@ def time():
             with col2:
                 end_date = st.date_input("End Date:")
 
+            from datetime import datetime
+
             if start_date and end_date and st.form_submit_button("Submit"):
-                if option == "Buy & Hold (Strategy)":
-                    pass
+                if option == "Buy & Hold (Strategy & Backtesting)":
+                    class BuyHold(Strategy):
+
+                        def initialize(self):
+                            self.sleeptime = "1D"
+
+                        def on_trading_iteration(self):
+                            if self.first_iteration:
+                                stocks_and_quantities = [
+                                    {"symbol": ticker_input, "quantity": quantities_input},
+                                ]
+                                for stock_info in stocks_and_quantities:
+                                    symbol = stock_info["symbol"]
+                                    quantity = stock_info["quantity"]
+                                    price = self.get_last_price(symbol)
+                                    cost = price * quantity
+                                    self.cash = portfolio_size
+                                    if self.cash >= cost:
+                                        order = self.create_order(symbol, quantity, "buy")
+                                        self.submit_order(order)
+                    trade = False
+                    if trade:
+                        broker = Alpaca(ALPACA_CONFIG)
+                        strategy = BuyHold(broker=broker)
+                        trader = Trader()
+                        trader.add_strategy(strategy)
+                        trader.run_all()
+                    else:
+                        start = datetime(start_date.year, start_date.month, start_date.day)  # Convert start_date to datetime
+                        end = datetime(end_date.year, end_date.month, end_date.day)  # Convert end_date to datetime
+                        BuyHold.backtest(
+                            YahooDataBacktesting,
+                            start,
+                            end
+                        )
+
                 if option == "Swing High":
                     pass
                 if option == "ma-cross strategy":
