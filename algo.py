@@ -14,6 +14,9 @@ import numpy as np
 import quantstats as qs
 import webbrowser as web
 import yfinance as yf
+import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use("agg")  
 
 
 st.title("🦜🔗 Algorithmic Trading Framework using Lumibots API")
@@ -134,7 +137,47 @@ def time():
                         )
 
                 if option == "Swing High":
-                    pass
+                    class SwingHigh(Strategy):
+                        data = {}  # Dictionary to store last price data for each symbol
+                        order_numbers = {}  # Dictionary to store order numbers for each symbol
+                        shares_per_ticker = {}  # Dictionary to specify the number of shares per ticker
+
+                        def initialize(self):
+                            self.symbols = ticker_input# Add other symbols as needed
+                            self.shares_per_ticker = {ticker_input: quantities_input}   # Specify the number of shares for each symbol
+                            self.sleeptime = "10S"
+                        def on_trading_iteration(self):
+                            for symbol in self.symbols:
+                                if symbol not in self.data:
+                                    self.data[symbol] = []
+
+                                entry_price = self.get_last_price(symbol)
+                                self.log_message(f"Position for {symbol}: {self.get_position(symbol)}")
+                                self.data[symbol].append(entry_price)
+
+                                if len(self.data[symbol]) > 3:
+                                    temp = self.data[symbol][-3:]
+                                    if temp[-1] > temp[1] > temp[0]:
+                                        self.log_message(f"Last 3 prints for {symbol}: {temp}")
+                                        order = self.create_order(symbol, quantity=self.shares_per_ticker[symbol], side="buy")
+                                        self.submit_order(order)
+                                        if symbol not in self.order_numbers:
+                                            self.order_numbers[symbol] = 0
+                                        self.order_numbers[symbol] += 1
+                                        if self.order_numbers[symbol] == 1:
+                                            self.log_message(f"Entry price for {symbol}: {temp[-1]}")
+                                            entry_price = temp[-1]  # filled price
+                                    if self.get_position(symbol) and self.data[symbol][-1] < entry_price * 0.995:
+                                        self.sell_all(symbol)
+                                        self.order_numbers[symbol] = 0
+                                    elif self.get_position(symbol) and self.data[symbol][-1] >= entry_price * 1.015:
+                                        self.sell_all(symbol)
+                                        self.order_numbers[symbol] = 0
+
+                        def before_market_closes(self):
+                            for symbol in self.symbols:
+                                self.sell_all(symbol)
+
                 if option == "ma-cross strategy":
                     pass
                 if option == "Trend":
@@ -191,10 +234,22 @@ def time():
                     data, sig = signal(gld)
                     st.write(data)
                     st.write(sig)
-                    
-                    
+                
                 if option == "Portfolio earnings":
-                    pass
+                    qs.extend_pandas()
+
+                    index = {"SPY": 1.3, "AGG": -.3}
+                    portfolio = qs.utils.make_index(index, period='3y')
+                    portfolio.index = portfolio.index.tz_localize(None)
+                    
+                    # Create the Matplotlib figure and axis
+                    fig, ax = plt.subplots()
+                    portfolio.plot_earnings(start_balance=portfolio_size)  # Use ax=ax to specify the axis
+
+                    # Display the Matplotlib figure using st.pyplot()
+                    st.pyplot(fig)
+                    
+                
                 if option == "single stock backtest":
                     pass
 
