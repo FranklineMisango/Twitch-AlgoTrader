@@ -32,7 +32,6 @@ cryptography==3.4.8
 cycler==0.11.0
 dataclasses-json==0.5.14
 dbus-python==1.2.18
-defer==1.0.6
 deprecation==2.1.0
 distro==1.7.0
 distro-info===1.1build1
