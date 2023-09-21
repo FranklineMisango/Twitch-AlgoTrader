@@ -1,4 +1,5 @@
 streamlit==1.26.0
+aiohttp=3.8.2
 alpaca-trade-api==2.3.0
 lumibot==2.7.14
 pandas==1.5.3
