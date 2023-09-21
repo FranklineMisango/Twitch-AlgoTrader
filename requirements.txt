@@ -148,7 +148,6 @@ PyPika==0.48.9
 pyRFC3339==1.1
 pytest==7.4.0
 python-dateutil==2.8.1
-python-debian===0.1.43ubuntu1
 python-dotenv==1.0.0
 python-engineio==4.6.1
 python-socketio==5.8.0
