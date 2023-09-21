@@ -85,7 +85,6 @@ kiwisolver==1.4.5
 korean-lunar-calendar==0.3.1
 langchain==0.0.286
 langsmith==0.0.35
-language-selector==0.1
 launchpadlib==1.10.16
 lazr.restfulclient==0.14.4
 lazr.uri==1.0.6
