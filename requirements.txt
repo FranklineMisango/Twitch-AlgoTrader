@@ -34,7 +34,6 @@ dataclasses-json==0.5.14
 dbus-python==1.2.18
 deprecation==2.1.0
 distro==1.7.0
-distro-info===1.1build1
 dnspython==2.4.2
 duplicity==0.8.21
 email-validator==2.0.0.post2
