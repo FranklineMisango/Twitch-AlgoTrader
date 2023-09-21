@@ -16,7 +16,6 @@ bcrypt==4.0.1
 beautifulsoup4==4.12.2
 bidict==0.22.1
 blinker==1.6.2
-Brlapi==^0.8.3
 cachetools==5.3.1
 ccxt==3.0.61
 certifi==2020.6.20
