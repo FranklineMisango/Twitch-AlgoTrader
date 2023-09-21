@@ -59,6 +59,5 @@ jobs:
         id: deploy-to-webapp
         with:
           app-name: 'xpayalgobeta'
-          startup-command: "streamlit run dashboard.py"
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_4C07D558F54D40C0965B830A56EB1772 }}
