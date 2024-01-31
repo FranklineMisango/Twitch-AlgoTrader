@@ -67,7 +67,7 @@ def main():
             end_date = st.date_input("End Date:")
         if start_date and end_date and st.form_submit_button("Closing Price Data"):
             # Perform download on all stocks
-            stocks_all = yf.download(st.session_state.tickers, start=start_date, end=end_date)
+            stocks_all = yf.download(st.session_state.tickers, start=start_date, proxy=None, timeout=30)
             if not stocks_all.empty:
                 st.success("Data downloaded successfully! Analyst Can Now Investigate A Stock's perfomance against selected Benchmark")
                 close_all = stocks_all.loc[:, "Close"].copy()
