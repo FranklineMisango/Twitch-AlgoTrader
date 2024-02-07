@@ -63,6 +63,7 @@ def main():
     with st.form(key='benchmark_form'):
         col1, col2 = st.columns([2, 2])
         with col1:
+            #To work on the global exchanges
             benchmark = st.selectbox("Select One benchmark (More will be added soon):", ["SPY", "DJIA", "HSI", "UKX", "SX5E", "SHCOMP", "N225", "STI", "NSEASI", "DFMGI", "ADXGI", "TASI"])
         with col2:
             add_benchmark_button = st.form_submit_button("Add +")
