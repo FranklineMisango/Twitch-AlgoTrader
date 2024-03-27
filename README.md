@@ -28,7 +28,7 @@ This Python project is quite complex and requires users to have at least basic u
 #### Live Trade in Action Demo
 ![](images/construction.jpg)
 
-## Installation
+## Installation - Twitch Testing 
 * You need to create your own Twitch, Alpaca Markets and IEX cloud Accounts
 * Clone this repo to your local Machine
 * Run `pip install requirements.txt`
@@ -38,3 +38,8 @@ This Python project is quite complex and requires users to have at least basic u
 * To start trading, run `python twitch.py` and observe `connected to bot` successfully
 * Login to your own twitch account and in your chat, try `!buy STOCK_SYMBOL Number` replacing Stock symbol and the number
 * To trade for my behalf lol, Follow me on Twitch `ATLien_ke` and join my message list when the chat & live stream opens, you can be allowed in
+
+## Installation - INhouse Testing 
+* create your own config file and append your own APIs 
+* run `streamlit run dashboard.py`
+* Refere to my repo, Lumibots for automation 
