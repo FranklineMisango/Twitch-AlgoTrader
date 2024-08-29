@@ -3,7 +3,7 @@ This Python project is quite complex and requires users to have at least basic u
 
 ## Softare Development
 #### Software Development Cycle Architecture 
-![](images/image_trading_bot.jpg)
+![](images/Architecture_b.png)
 
 #### Application Programming Interface (APIs)
 * Twitch APIs - These APIs are creating the Intertwined Twitch bot that allows my followers to Trade
