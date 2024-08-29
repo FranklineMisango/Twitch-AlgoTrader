@@ -1,7 +1,11 @@
 # Twitch-AlgoTrader
 This Python project is quite complex and requires users to have at least basic understanding of Algorithmic Trading software structures and Finance. The project allows me to execute Novice Level Trades After considering recommendations from customized Algorithms modelled into web apps. I am a certified Financial Modelling Valuation Analyst (FMVA) from The Corporate Finance Institute & Intermediate Software Engineer that qualifies me to work on this project
 
-## Softare Development
+## Project Updates and Goals
+* Generate a live graph and allow users to trade with realtime observation of portfolio value and real-time cash
+* Give Lumibots autonomy to keep trading on low stream days
+
+## Software Development
 #### Software Development Cycle Architecture 
 ![](images/Architecture_b.png)
 
