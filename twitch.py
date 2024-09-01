@@ -1,12 +1,17 @@
+from dotenv import load_dotenv
 import alpaca_trade_api as tradeapi
 from twitchio.ext import commands
-from config import ALPACA_KEY, ALPACA_SECRET_KEY, APCA_API_BASE_URL
-from config import TWITCH_TOKEN
-from config import TWITCH_CLIENT_ID
+import os
 
-API_KEY = ALPACA_KEY
-SECRET_KEY = ALPACA_SECRET_KEY
-BASE_URL = APCA_API_BASE_URL
+# Load environment variables from .env file
+load_dotenv()
+
+# Retrieve environment variables
+API_KEY = os.getenv('ALPACA_KEY')
+SECRET_KEY = os.getenv('ALPACA_SECRET_KEY')
+BASE_URL = os.getenv('ALPACA_API_BASE_URL')
+TWITCH_TOKEN = os.getenv('access_token')
+TWITCH_CLIENT_ID = os.getenv('TWITCH_CLIENT_ID')
 
 api = tradeapi.REST(API_KEY, SECRET_KEY, base_url=BASE_URL)
 
@@ -33,8 +38,10 @@ class TradingBot(commands.Bot):
         if message.content.startswith('!'):
             await self.handle_commands(message)
         else:
-            await message.channel.send("This is a trading bot. Please use the !buy or !sell command to trade.")
-            print("Sent response:", "This is a trading bot. Please use the !buy or !sell command to trade.")
+            user_name = message.author.name
+            response = f"@{user_name}, this is a trading bot. Please use the !buy or !sell command to trade."
+            await message.channel.send(response)
+            print("Sent response:", response)
 
     async def handle_commands(self, message):
         print("Handling command:", message.content)

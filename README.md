@@ -21,7 +21,7 @@ This Python project is quite complex and requires users to have at least basic u
 ![](images/construction.jpg)
 
 ## Installation - Twitch Testing 
-* You need to create your own Twitch, Alpaca Markets and IEX cloud Accounts
+* You need to create your own Twitch, and Alpaca Trading API
 * Clone this repo to your local Machine
 * Run `pip install requirements.txt`
 * Create a config.py and paste in that your `ALPACA API credentials` and `Twitch credentials` all specified in the twitch.py
@@ -29,6 +29,6 @@ This Python project is quite complex and requires users to have at least basic u
 * Login to your own twitch account and in your chat, try `!buy STOCK_SYMBOL Number` replacing Stock symbol and the number
 * To trade for my behalf lol, Follow me on Twitch `ATLien_ke` and join my message list when the chat & live stream opens, you can be allowed in
 
-## Installation - INhouse Testing 
+## Installation - Inhouse Testing 
 * create your own config file and append your own APIs 
 * Refer to my repo, Lumibots for automation 
